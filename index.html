@@ -1,0 +1,212 @@
+<!-- CSS -->
+<style type="text/css" media="screen">
+
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  font-family: Helvetica;
+  background-color: white;
+}
+
+.LeftCellStyle
+{
+  font-size: 11pt;
+  border: 1px solid #DCDCDC;
+  border-left: none;
+  width: 50%;
+  height: 0;
+  padding: 5;
+  line-height: 2.0;
+  outline: none;
+  vertical-align: top;
+}
+
+.RightCellStyle
+{
+  font-size: 11pt;
+  border: 1px solid #DCDCDC;
+  width: 50%;
+  height: 0;
+  padding: 5;
+  line-height: 2.0;
+  outline: none;
+  vertical-align: top;
+}
+
+.DialogBackgroundStyle {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.DialogContentStyle {
+  background-color: white;
+  margin: auto;
+  width: 500;
+  height: 500;
+  border: 2px solid lightgrey;
+  padding: 10px;
+  font-family: Sans-Serif;
+}
+
+</style>
+
+<!-- HTML -->
+<button onmousedown = "event.preventDefault();" onclick="AddRow( '', GetSelectedRow() )">+</button>
+<button onmousedown = "event.preventDefault();" onclick="document.getElementById( 'AddTextDialog' ).style.display = 'flex';">++</button>
+<button onmousedown = "event.preventDefault();" onclick="RemoveSelectedRow()">-</button>
+<button onmousedown = "event.preventDefault();" onclick="document.execCommand( 'backColor', false, 'yellow' );">Highlight</button>
+<button onmousedown = "event.preventDefault();" onclick="document.getElementById( 'SettingsDialog' ).style.display = 'flex';">Settings</button>
+
+<br>
+
+<div style = "width: 100%; height: 90%; overflow-y: scroll; background-color: rgb( 248, 249, 250 ); border: 1px solid rgb( 218, 220, 224 );" >
+	<table id = "MainTable" > </table>
+</div>
+
+<div id="SettingsDialog" class="DialogBackgroundStyle"><div class = "DialogContentStyle" >
+	<div style = "font-size: 18pt;">
+		Settings
+    	<button style = "float: right; font-size: 20pt;" onclick = "document.getElementById( 'SettingsDialog' ).style.display = 'none';">×</button>
+    </div>
+    <br>
+	<fieldset style = "display: inline-block;">
+	<legend>Left column</legend>
+		<select onchange="GetCSSRuleStyle( '.LeftCellStyle' ).fontFamily = this.value;">
+			<option>Helvetica</option>
+			<option>Serif</option>
+			<option>Arial</option>
+			<option>Sans-Serif</option>                                  
+			<option>Tahoma</option>
+			<option>Verdana</option>
+			<option>Lucida Sans Unicode</option>                               
+		</select>
+		<select onchange = "GetCSSRuleStyle( '.LeftCellStyle' ).fontSize = this.value + 'pt';">
+			<option>8</option>
+            <option>9</option>
+            <option>10</option>
+            <option selected="selected">11</option>
+            <option>12</option>
+            <option>14</option>
+            <option>16</option>                               
+  		</select>
+		<br>
+		<input type="checkbox" onchange = "GetCSSRuleStyle( '.LeftCellStyle' ).direction = this.checked ? 'rtl' : 'ltr';">Left-to-right
+	</fieldset>
+	<fieldset style = "display: inline-block;">
+	<legend>Right column</legend>
+		<select onchange="GetCSSRuleStyle( '.RightCellStyle' ).fontFamily = this.value;">
+			<option>Helvetica</option>
+			<option>Serif</option>
+			<option>Arial</option>
+			<option>Sans-Serif</option>                                  
+			<option>Tahoma</option>
+			<option>Verdana</option>
+			<option>Lucida Sans Unicode</option>                               
+		</select>
+		<select onchange = "GetCSSRuleStyle( '.RightCellStyle' ).fontSize = this.value + 'pt';">
+			<option>8</option>
+            <option>9</option>
+            <option>10</option>
+            <option selected="selected">11</option>
+            <option>12</option>
+            <option>14</option>
+            <option>16</option>                               
+  		</select>
+		<br>
+		<input type="checkbox" onchange = "GetCSSRuleStyle( '.LeftCellStyle' ).direction = this.checked ? 'rtl' : 'ltr';">Left-to-right
+	</fieldset>
+    
+    <br>
+    <br>
+    Column distribution:
+    <input type="range" min="1" max="99" value="50" style = "width: 100%;" oninput = "GetCSSRuleStyle( '.LeftCellStyle' ).width = this.value + '%'; GetCSSRuleStyle( '.RightCellStyle' ).width = 100 - this.value + '%';" >
+</div></div>
+
+<div id="AddTextDialog" class="DialogBackgroundStyle"><div class = "DialogContentStyle" >
+	<div style = "font-size: 18pt;">
+		Add text
+    	<button style = "float: right; font-size: 12pt;" onclick = "document.getElementById( 'AddTextDialog' ).style.display = 'none';">×</button>
+    </div>
+    <div id = "TextInputDiv" style = "border: 2px solid lightgrey; height: 90%; overflow-y: scroll;" contentEditable = true></div>
+    <br>
+	<button onclick= "ConvertNewText()" >Go</button>
+</div></div>
+
+<!-- JavaScript -->
+
+<script>
+
+var MainTable = document.getElementById("MainTable");
+
+function AddRow( text, index )
+{
+	let NewRow = MainTable.insertRow( index == undefined ? -1 : index );
+
+    let NewCell = NewRow.insertCell();
+    NewCell.className = "LeftCellStyle";
+    NewCell.contentEditable = true;
+    
+    if( text )
+    	NewCell.innerText = text;
+    
+    NewCell = NewRow.insertCell();
+    NewCell.className = "RightCellStyle";
+    NewCell.contentEditable = true;
+}
+
+function GetSelectedRow()
+{
+	for( let i = 0; i < MainTable.rows.length; i++ )
+   		if( MainTable.rows[ i ].cells[ 0 ] == document.activeElement || MainTable.rows[ i ].cells[ 1 ] == document.activeElement )
+        	return i;
+ 
+	return -1;
+}
+
+function RemoveSelectedRow()
+{
+	let selectedrow = GetSelectedRow();
+    if( selectedrow != -1 )
+        MainTable.deleteRow( selectedrow );
+}
+
+function GetCSSRuleStyle( classname )
+{
+	for( var i = 0; i < document.styleSheets[ 0 ].cssRules.length; i++ )
+    	if( document.styleSheets[ 0 ].cssRules[ i ].selectorText == classname )
+        	return document.styleSheets[ 0 ].cssRules[ i ].style;
+}
+
+function ConvertNewText()
+{
+	let text = document.getElementById( "TextInputDiv" ).innerText;
+    let textarray = text.split(/\r?\n/);
+    
+    for( let i = 0; i < textarray.length; i++ )
+    	if( textarray[ i ].length != 0 )
+       	{
+        	//Ensure string doesn't consist of only spaces
+            let onlyspaces = true;
+            for( let j = 0; j < textarray[ i ].length; j++ )
+            	if( textarray[ i ][ j ] != ' ' )
+                {
+                	onlyspaces = false;
+                    break;
+                }
+            if( onlyspaces )
+            	continue;
+        
+        	//Add row
+    		AddRow( textarray[ i ] );
+        }
+}
+
+</script>
